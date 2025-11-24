@@ -23,7 +23,6 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -32,7 +31,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/users/register', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,12 +49,11 @@ const Register = () => {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Store token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to home
       navigate('/');
+      window.location.reload();
     } catch (err) {
       setError(err.message);
     } finally {

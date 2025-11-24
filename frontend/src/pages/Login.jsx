@@ -23,7 +23,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/users/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,12 +37,11 @@ const Login = () => {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Store token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to home
       navigate('/');
+      window.location.reload();
     } catch (err) {
       setError(err.message);
     } finally {

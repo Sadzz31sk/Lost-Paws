@@ -1,12 +1,22 @@
 const Animal = require('../models/Animal');
 
-// POST /api/animals
 exports.reportAnimal = async (req, res) => {
   try {
     const animalData = {
-      ...req.body,
+      name: req.body.name,
+      type: req.body.type,
+      description: req.body.description,
+      imageUrl: req.file ? req.file.path : null,
       reportedBy: req.user.id,
+      status: 'Reported',
     };
+
+    if (req.body.latitude && req.body.longitude) {
+      animalData.location = {
+        type: 'Point',
+        coordinates: [parseFloat(req.body.longitude), parseFloat(req.body.latitude)]
+      };
+    }
 
     const animal = new Animal(animalData);
     const saved = await animal.save();
@@ -16,19 +26,6 @@ exports.reportAnimal = async (req, res) => {
   }
 };
 
-// GET /api/animals/:id
-exports.getAnimalById = async (req, res) => {
-  try {
-    const animal = await Animal.findById(req.params.id).populate('reportedBy', 'name email');
-    if (!animal) return res.status(404).json({ message: 'Animal not found' });
-
-    res.status(200).json(animal);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// GET /api/animals
 exports.getAllAnimals = async (req, res) => {
   try {
     const animals = await Animal.find().populate('reportedBy', 'name email');
@@ -38,31 +35,38 @@ exports.getAllAnimals = async (req, res) => {
   }
 };
 
-// PUT /api/animals/:id
-exports.updateAnimal = async (req, res) => {
+exports.getAnimalById = async (req, res) => {
   try {
-    const animal = await Animal.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!animal) return res.status(404).json({ message: 'Animal not found' });
-
-    res.status(200).json(animal);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    const animal = await Animal.findById(req.params.id).populate('reportedBy', 'name email');
+    if (!animal) {
+      return res.status(404).json({ message: 'Animal not found' });
+    }
+    res.json(animal);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE /api/animals/:id
+exports.updateAnimal = async (req, res) => {
+  try {
+    const animal = await Animal.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!animal) {
+      return res.status(404).json({ message: 'Animal not found' });
+    }
+    res.json(animal);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.deleteAnimal = async (req, res) => {
   try {
     const animal = await Animal.findByIdAndDelete(req.params.id);
-
-    if (!animal) return res.status(404).json({ message: 'Animal not found' });
-
-    res.status(200).json({ message: 'Animal deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    if (!animal) {
+      return res.status(404).json({ message: 'Animal not found' });
+    }
+    res.json({ message: 'Animal deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
